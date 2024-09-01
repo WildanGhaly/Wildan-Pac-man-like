@@ -22,6 +22,9 @@ public class Enemy : MonoBehaviour
     [HideInInspector]
     public NavMeshAgent NavMeshAgent;
 
+    [HideInInspector]
+    public Animator Animator;
+
     public void SwitchState(BaseState state)
     {
         _currentState?.ExitState(this);
@@ -32,6 +35,7 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         NavMeshAgent = GetComponent<NavMeshAgent>();
+        Animator = GetComponent<Animator>();
         SwitchState(PatrolState);
     }
 
