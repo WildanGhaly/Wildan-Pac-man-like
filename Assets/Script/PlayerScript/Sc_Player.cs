@@ -1,10 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
+    private bool _isPowerUpActive;
+
     private Rigidbody _rigidBody;
 
     private Coroutine _powerupCoroutine;
@@ -21,6 +25,20 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _powerupDuration;
 
+    [SerializeField]
+    private Transform _respawnPoint;
+
+    [SerializeField]
+    private int _health;
+
+    [SerializeField]
+    private TMP_Text _healthText;
+
+    private void UpdateUI()
+    {
+        _healthText.text = "Health: " + _health;
+    }
+
     private void Awake()
     {
         _rigidBody = GetComponent<Rigidbody>();
@@ -28,6 +46,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        UpdateUI();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -69,10 +88,12 @@ public class Player : MonoBehaviour
         }
 
         _speed *= 2;
+        _isPowerUpActive = true;
 
         yield return new WaitForSeconds(_powerupDuration);
 
         _speed /= 2;
+        _isPowerUpActive = false;
 
         if (OnPowerUpStop != null)
         {
@@ -80,5 +101,33 @@ public class Player : MonoBehaviour
         }
 
         _powerupCoroutine = null;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_isPowerUpActive)
+        {
+            if (collision.gameObject.CompareTag("Enemy"))
+            {
+                collision.gameObject.GetComponent<Enemy>().Dead();
+            }
+        }
+    }
+
+    public void Dead()
+    {
+        if (_isPowerUpActive) return;
+
+        _health -= 1;
+        if (_health > 0)
+        {
+            transform.position = _respawnPoint.position;
+        }
+        else
+        {
+            _health = 0;
+            SceneManager.LoadScene("LoseScreen");
+        }
+        UpdateUI();
     }
 }
